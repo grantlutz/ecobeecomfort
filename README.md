@@ -1,5 +1,10 @@
 # ecobee Comfort — Homey app
 
+[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/johndellarciprete)
+[![Donate with PayPal](https://img.shields.io/badge/PayPal-Donate-00457C?logo=paypal&logoColor=white)](https://www.paypal.com/ncp/payment/G2KL8VSBQJUYA)
+[![Donate with Venmo](https://img.shields.io/badge/Venmo-Donate-3D95CE?logo=venmo&logoColor=white)](https://venmo.com/John-DellArciprete?txn=pay&amount=10)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 Control your ecobee thermostat from Homey — **including its comfort profiles**
 (Home / Away / Sleep, plus any custom profile you created in the ecobee app),
 which the existing Homey ecobee apps don't expose.
@@ -107,6 +112,13 @@ ecobee/            auth (Auth0 PKCE flow), REST client, JSON readers, registry
 drivers/thermostat  thermostat device, pairing (sign-in + MFA), flow cards
 drivers/sensor      room sensors, fed from the thermostat's poll — no API calls
 ```
+
+## Support this project
+
+If this app is useful to you, consider supporting it —
+[GitHub Sponsors](https://github.com/sponsors/johndellarciprete) ·
+[PayPal](https://www.paypal.com/ncp/payment/G2KL8VSBQJUYA) ·
+[Venmo](https://venmo.com/John-DellArciprete?txn=pay&amount=10)
 
 ## License
 
