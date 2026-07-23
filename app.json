@@ -1,0 +1,598 @@
+{
+  "id": "com.dellarciprete.ecobee",
+  "version": "0.2.0",
+  "compatibility": ">=13.0.0",
+  "sdk": 3,
+  "runtime": "python",
+  "pythonVersion": "3.13",
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "ecobee Comfort"
+  },
+  "description": {
+    "en": "Control your ecobee thermostat from Homey, including its Home, Away and Sleep comfort profiles."
+  },
+  "category": [
+    "climate"
+  ],
+  "permissions": [],
+  "author": {
+    "name": "John Dell'Arciprete"
+  },
+  "brandColor": "#1B7F79",
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "capabilities": {
+    "ecobee_comfort": {
+      "type": "enum",
+      "title": {
+        "en": "Comfort Profile"
+      },
+      "uiComponent": "picker",
+      "icon": "/assets/icons/comfort.svg",
+      "getable": true,
+      "setable": true,
+      "insights": false,
+      "values": [
+        {
+          "id": "schedule",
+          "title": {
+            "en": "Schedule"
+          }
+        },
+        {
+          "id": "home",
+          "title": {
+            "en": "Home"
+          }
+        },
+        {
+          "id": "away",
+          "title": {
+            "en": "Away"
+          }
+        },
+        {
+          "id": "sleep",
+          "title": {
+            "en": "Sleep"
+          }
+        },
+        {
+          "id": "custom",
+          "title": {
+            "en": "Custom"
+          }
+        }
+      ]
+    },
+    "ecobee_hold_status": {
+      "type": "enum",
+      "title": {
+        "en": "Hold"
+      },
+      "uiComponent": "sensor",
+      "icon": "/assets/icons/hold.svg",
+      "getable": true,
+      "setable": false,
+      "insights": false,
+      "values": [
+        {
+          "id": "schedule",
+          "title": {
+            "en": "Following schedule"
+          }
+        },
+        {
+          "id": "hold",
+          "title": {
+            "en": "Holding"
+          }
+        },
+        {
+          "id": "vacation",
+          "title": {
+            "en": "Vacation"
+          }
+        }
+      ]
+    },
+    "ecobee_fan_mode": {
+      "type": "enum",
+      "title": {
+        "en": "Fan"
+      },
+      "uiComponent": "picker",
+      "icon": "/assets/icons/fan.svg",
+      "getable": true,
+      "setable": true,
+      "insights": false,
+      "values": [
+        {
+          "id": "auto",
+          "title": {
+            "en": "Auto"
+          }
+        },
+        {
+          "id": "on",
+          "title": {
+            "en": "On"
+          }
+        }
+      ]
+    }
+  },
+  "drivers": [
+    {
+      "id": "thermostat",
+      "name": {
+        "en": "ecobee Thermostat"
+      },
+      "class": "thermostat",
+      "capabilities": [
+        "measure_temperature",
+        "measure_humidity",
+        "target_temperature",
+        "thermostat_mode",
+        "ecobee_comfort",
+        "ecobee_fan_mode",
+        "ecobee_hold_status"
+      ],
+      "capabilitiesOptions": {
+        "thermostat_mode": {
+          "values": [
+            {
+              "id": "off",
+              "title": {
+                "en": "Off"
+              }
+            },
+            {
+              "id": "heat",
+              "title": {
+                "en": "Heat"
+              }
+            },
+            {
+              "id": "cool",
+              "title": {
+                "en": "Cool"
+              }
+            },
+            {
+              "id": "auto",
+              "title": {
+                "en": "Auto"
+              }
+            }
+          ]
+        },
+        "target_temperature": {
+          "min": 5,
+          "max": 35,
+          "step": 0.5,
+          "decimals": 0
+        },
+        "measure_temperature": {
+          "decimals": 0
+        }
+      },
+      "platforms": [
+        "local"
+      ],
+      "images": {
+        "small": "/drivers/thermostat/assets/images/small.png",
+        "large": "/drivers/thermostat/assets/images/large.png",
+        "xlarge": "/drivers/thermostat/assets/images/xlarge.png"
+      },
+      "pair": [
+        {
+          "id": "start"
+        }
+      ]
+    },
+    {
+      "id": "sensor",
+      "name": {
+        "en": "ecobee Room Sensor"
+      },
+      "class": "sensor",
+      "capabilities": [
+        "measure_temperature",
+        "alarm_motion",
+        "measure_humidity"
+      ],
+      "capabilitiesOptions": {
+        "measure_temperature": {
+          "decimals": 0
+        }
+      },
+      "platforms": [
+        "local"
+      ],
+      "images": {
+        "small": "/drivers/sensor/assets/images/small.png",
+        "large": "/drivers/sensor/assets/images/large.png",
+        "xlarge": "/drivers/sensor/assets/images/xlarge.png"
+      },
+      "pair": [
+        {
+          "id": "start"
+        }
+      ]
+    }
+  ],
+  "flow": {
+    "triggers": [
+      {
+        "id": "comfort_changed",
+        "title": {
+          "en": "Comfort profile changed"
+        },
+        "titleFormatted": {
+          "en": "Comfort profile changed to [[profile]]"
+        },
+        "tokens": [
+          {
+            "name": "profile",
+            "type": "string",
+            "title": {
+              "en": "Profile"
+            },
+            "example": "away"
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=thermostat"
+          }
+        ]
+      },
+      {
+        "id": "temperature_changed",
+        "title": {
+          "en": "Indoor temperature changed"
+        },
+        "titleFormatted": {
+          "en": "Indoor temperature changed to [[temperature]]"
+        },
+        "tokens": [
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Temperature"
+            },
+            "example": 21.5
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=thermostat"
+          }
+        ]
+      },
+      {
+        "id": "mode_changed",
+        "title": {
+          "en": "Mode changed"
+        },
+        "titleFormatted": {
+          "en": "Mode changed to [[mode]]"
+        },
+        "tokens": [
+          {
+            "name": "mode",
+            "type": "string",
+            "title": {
+              "en": "Mode"
+            },
+            "example": "heat"
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=thermostat"
+          }
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "id": "comfort_profile_is",
+        "title": {
+          "en": "Comfort profile !{{is|is not}}"
+        },
+        "titleFormatted": {
+          "en": "Comfort profile !{{is|is not}} [[profile]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=thermostat"
+          },
+          {
+            "type": "text",
+            "name": "profile",
+            "title": {
+              "en": "Profile"
+            },
+            "placeholder": {
+              "en": "home, away, sleep or a custom profile"
+            }
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "set_comfort_profile",
+        "title": {
+          "en": "Set comfort profile"
+        },
+        "titleFormatted": {
+          "en": "Set comfort profile to [[profile]] ([[hold_type]])"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=thermostat"
+          },
+          {
+            "type": "dropdown",
+            "name": "profile",
+            "title": {
+              "en": "Profile"
+            },
+            "values": [
+              {
+                "id": "home",
+                "title": {
+                  "en": "Home"
+                }
+              },
+              {
+                "id": "away",
+                "title": {
+                  "en": "Away"
+                }
+              },
+              {
+                "id": "sleep",
+                "title": {
+                  "en": "Sleep"
+                }
+              },
+              {
+                "id": "schedule",
+                "title": {
+                  "en": "Schedule (resume program)"
+                }
+              }
+            ]
+          },
+          {
+            "type": "dropdown",
+            "name": "hold_type",
+            "title": {
+              "en": "Hold until"
+            },
+            "values": [
+              {
+                "id": "indefinite",
+                "title": {
+                  "en": "I change it again"
+                }
+              },
+              {
+                "id": "nextTransition",
+                "title": {
+                  "en": "The next scheduled change"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "set_comfort_profile_named",
+        "title": {
+          "en": "Set comfort profile by name"
+        },
+        "titleFormatted": {
+          "en": "Set comfort profile to [[name]] ([[hold_type]])"
+        },
+        "hint": {
+          "en": "Use this for custom comfort profiles you created in the ecobee app. Type the profile's name exactly as it appears there."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=thermostat"
+          },
+          {
+            "type": "text",
+            "name": "name",
+            "title": {
+              "en": "Profile name"
+            },
+            "placeholder": {
+              "en": "e.g. Movie Night"
+            }
+          },
+          {
+            "type": "dropdown",
+            "name": "hold_type",
+            "title": {
+              "en": "Hold until"
+            },
+            "values": [
+              {
+                "id": "indefinite",
+                "title": {
+                  "en": "I change it again"
+                }
+              },
+              {
+                "id": "nextTransition",
+                "title": {
+                  "en": "The next scheduled change"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "resume_schedule",
+        "title": {
+          "en": "Resume the schedule"
+        },
+        "hint": {
+          "en": "Clears any hold and hands the thermostat back to its own program."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=thermostat"
+          }
+        ]
+      },
+      {
+        "id": "set_mode",
+        "title": {
+          "en": "Set mode"
+        },
+        "titleFormatted": {
+          "en": "Set mode to [[mode]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=thermostat"
+          },
+          {
+            "type": "dropdown",
+            "name": "mode",
+            "title": {
+              "en": "Mode"
+            },
+            "values": [
+              {
+                "id": "off",
+                "title": {
+                  "en": "Off"
+                }
+              },
+              {
+                "id": "heat",
+                "title": {
+                  "en": "Heat"
+                }
+              },
+              {
+                "id": "cool",
+                "title": {
+                  "en": "Cool"
+                }
+              },
+              {
+                "id": "auto",
+                "title": {
+                  "en": "Auto"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "set_fan_mode",
+        "title": {
+          "en": "Set fan mode"
+        },
+        "titleFormatted": {
+          "en": "Set fan mode to [[mode]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=thermostat"
+          },
+          {
+            "type": "dropdown",
+            "name": "mode",
+            "title": {
+              "en": "Fan mode"
+            },
+            "values": [
+              {
+                "id": "auto",
+                "title": {
+                  "en": "Auto"
+                }
+              },
+              {
+                "id": "on",
+                "title": {
+                  "en": "On"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "set_temperature",
+        "title": {
+          "en": "Set temperature"
+        },
+        "titleFormatted": {
+          "en": "Set temperature to [[temperature]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=thermostat"
+          },
+          {
+            "type": "number",
+            "name": "temperature",
+            "title": {
+              "en": "Temperature"
+            },
+            "min": 5,
+            "max": 35,
+            "step": 0.5,
+            "units": {
+              "en": "°C"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "pythonPackages": [
+    "aiohttp",
+    "certifi"
+  ]
+}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { margin: 0; padding: 4px 2px 16px; }
+    label.lbl { display:block; font-weight:600; margin-bottom:6px; font-size:14px; }
+    .hint { color:#888; font-size:12.5px; margin-top:5px; }
+    button {
+      display:block; width:100%; box-sizing:border-box; text-align:center;
+      padding:13px; border:1px solid #1B7F79; border-radius:8px; font-size:15px;
+      font-weight:600; cursor:pointer; font-family:inherit; margin-top:14px;
+      background:#fff; color:#1B7F79;
+    }
+    button:hover { background:#e8f4f3; }
+    #error { color:#c00; margin-top:12px; min-height:18px; font-size:13.5px; }
+  </style>
+</head>
+<body>
+  <label class="lbl">Your ecobee room sensors</label>
+  <div class="hint" style="margin-bottom:4px">
+    Sensors are read through your paired ecobee thermostat — no sign-in needed.
+    Tap one to add it to Homey.
+  </div>
+  <div id="deviceList"></div>
+  <div id="error"></div>
+
+  <script type="application/javascript">
+    function $(id) { return document.getElementById(id); }
+
+    // One-view pairing, same reasoning as the thermostat driver: later pair
+    // views render blank on this Homey build, so devices are created directly.
+    async function load() {
+      try {
+        var devices = await Homey.emit('list_devices', {});
+        if (!devices || !devices.length) {
+          $('error').textContent = 'No room sensors were found on the paired thermostats.';
+          return;
+        }
+        var list = $('deviceList');
+        list.innerHTML = '';
+        devices.forEach(function (d) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = d.name || 'Sensor';
+          b.addEventListener('click', async function () {
+            $('error').style.color = '#c00';
+            $('error').textContent = '';
+            try {
+              Homey.showLoadingOverlay();
+              await Homey.createDevice(d);
+              Homey.hideLoadingOverlay();
+              $('error').style.color = '#0d652d';
+              $('error').textContent = 'Added ' + (d.name || 'sensor') + '. Finishing…';
+              await Homey.done();
+            } catch (e) {
+              Homey.hideLoadingOverlay();
+              $('error').textContent = (e && e.message) ? e.message : String(e);
+            }
+          });
+          list.appendChild(b);
+        });
+      } catch (e) {
+        $('error').textContent = (e && e.message) ? e.message : String(e);
+      }
+    }
+
+    load();
+    try { Homey.setTitle('Add ecobee room sensors'); } catch (e) {}
+  </script>
+</body>
+</html>

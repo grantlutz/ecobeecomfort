@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { margin: 0; padding: 4px 2px 16px; }
+    .field { margin: 14px 0; }
+    label.lbl { display:block; font-weight:600; margin-bottom:6px; font-size:14px; }
+    input[type=text], input[type=email], input[type=password] {
+      width:100%; padding:11px; border:1px solid #ccc; border-radius:8px;
+      box-sizing:border-box; font-size:15px;
+    }
+    #code { font-family:monospace; letter-spacing:2px; font-size:17px; text-align:center; }
+    .hint { color:#888; font-size:12.5px; margin-top:5px; }
+    button {
+      display:block; width:100%; box-sizing:border-box; text-align:center;
+      padding:13px; border:none; border-radius:8px; font-size:15px; font-weight:600;
+      cursor:pointer; font-family:inherit; margin-top:14px;
+      background:#1B7F79; color:#fff;
+    }
+    button:hover { background:#14615c; }
+    #deviceList button { background:#fff; color:#1B7F79; border:1px solid #1B7F79; }
+    #deviceList button:hover { background:#e8f4f3; }
+    #error { color:#c00; margin-top:12px; min-height:18px; font-size:13.5px; }
+    h3 { margin: 6px 0 2px; font-size:15px; }
+  </style>
+</head>
+<body>
+  <div id="credPanel">
+    <h3>Sign in to ecobee</h3>
+    <div class="hint">
+      Use the same email and password as the ecobee app. Your thermostat must
+      already be set up and online there.
+    </div>
+
+    <div class="field">
+      <label class="lbl" for="email">ecobee email</label>
+      <input type="email" id="email" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label class="lbl" for="password">ecobee password</label>
+      <input type="password" id="password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Password">
+    </div>
+
+    <button id="go" type="button">Sign in</button>
+  </div>
+
+  <div id="mfaPanel" style="display:none">
+    <h3>Two-step verification</h3>
+    <div class="hint" id="mfaHint">Enter your verification code.</div>
+    <div class="field">
+      <label class="lbl" for="code">Verification code</label>
+      <input type="text" id="code" inputmode="numeric" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="123456">
+    </div>
+    <button id="verify" type="button">Verify</button>
+  </div>
+
+  <div id="devicePanel" style="display:none">
+    <label class="lbl">Your thermostats</label>
+    <div class="hint" style="margin-bottom:4px">Tap a thermostat to add it to Homey.</div>
+    <div id="deviceList"></div>
+  </div>
+
+  <div id="error"></div>
+
+  <script type="application/javascript">
+    function $(id) { return document.getElementById(id); }
+
+    function fail(msg) {
+      $('error').style.color = '#c00';
+      $('error').textContent = msg;
+    }
+
+    function note(msg) {
+      $('error').style.color = '#0d652d';
+      $('error').textContent = msg;
+    }
+
+    function show(panel) {
+      ['credPanel', 'mfaPanel', 'devicePanel'].forEach(function (id) {
+        $(id).style.display = (id === panel) ? 'block' : 'none';
+      });
+    }
+
+    // Everything happens in this ONE view: on this Homey build every pair view
+    // after the first renders blank, so we never call showView/nextView or use
+    // the list_devices template — we call Homey.createDevice() directly.
+    async function showDevices() {
+      var devices = await Homey.emit('list_devices', {});
+      if (!devices || !devices.length) {
+        fail('Signed in, but no thermostats came back from the app.');
+        return;
+      }
+      var list = $('deviceList');
+      list.innerHTML = '';
+      devices.forEach(function (d) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = d.name || 'Thermostat';
+        b.addEventListener('click', async function () {
+          $('error').textContent = '';
+          try {
+            Homey.showLoadingOverlay();
+            await Homey.createDevice(d);
+            Homey.hideLoadingOverlay();
+            note('Added ' + (d.name || 'thermostat') + '. Finishing…');
+            await Homey.done();
+          } catch (e) {
+            Homey.hideLoadingOverlay();
+            fail((e && e.message) ? e.message : String(e));
+          }
+        });
+        list.appendChild(b);
+      });
+      show('devicePanel');
+    }
+
+    // Both sign-in steps end the same way: either ecobee wants a code, or we
+    // have thermostats to list.
+    async function handleResult(res) {
+      if (!res) {
+        fail('No response from the app (the pair handler did not run).');
+        return;
+      }
+      if (res.status === 'mfa') {
+        $('mfaHint').textContent = res.message || 'Enter your verification code.';
+        $('code').value = '';
+        show('mfaPanel');
+        $('code').focus();
+        return;
+      }
+      note('Signed in. Found ' + res.count + ' thermostat(s).');
+      await showDevices();
+    }
+
+    $('go').addEventListener('click', async function () {
+      $('error').textContent = '';
+      try {
+        Homey.showLoadingOverlay();
+        var res = await Homey.emit('login', {
+          email: $('email').value.trim(),
+          password: $('password').value
+        });
+        Homey.hideLoadingOverlay();
+        await handleResult(res);
+      } catch (e) {
+        Homey.hideLoadingOverlay();
+        fail((e && e.message) ? e.message : String(e));
+      }
+    });
+
+    $('verify').addEventListener('click', async function () {
+      var code = $('code').value.trim();
+      $('error').textContent = '';
+      if (!code) { fail('Enter the verification code first.'); return; }
+      try {
+        Homey.showLoadingOverlay();
+        var res = await Homey.emit('submit_mfa', { code: code });
+        Homey.hideLoadingOverlay();
+        await handleResult(res);
+      } catch (e) {
+        Homey.hideLoadingOverlay();
+        fail((e && e.message) ? e.message : String(e));
+      }
+    });
+
+    $('code').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { $('verify').click(); }
+    });
+
+    try { Homey.setTitle('Connect ecobee'); } catch (e) {}
+  </script>
+</body>
+</html>
