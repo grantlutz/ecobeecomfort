@@ -108,6 +108,10 @@ drivers/thermostat  thermostat device, pairing (sign-in + MFA), flow cards
 drivers/sensor      room sensors, fed from the thermostat's poll — no API calls
 ```
 
+## License
+
+[MIT](LICENSE) — free to use, modify, and redistribute.
+
 ## Disclaimer
 
 This is an unofficial, community-built app. It is not affiliated with,
