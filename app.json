@@ -1,6 +1,6 @@
 {
   "id": "com.dellarciprete.ecobee",
-  "version": "0.2.0",
+  "version": "1.0.1",
   "compatibility": ">=13.0.0",
   "sdk": 3,
   "runtime": "python",
@@ -19,8 +19,16 @@
   ],
   "permissions": [],
   "author": {
-    "name": "John Dell'Arciprete"
+    "name": "John Dell'Arciprete",
+    "email": "johndellarciprete@gmail.com"
   },
+  "homepage": "https://github.com/johndellarciprete/ecobeecomfort",
+  "source": "https://github.com/johndellarciprete/ecobeecomfort",
+  "support": "https://github.com/johndellarciprete/ecobeecomfort/issues",
+  "bugs": {
+    "url": "https://github.com/johndellarciprete/ecobeecomfort/issues"
+  },
+  "license": "MIT",
   "brandColor": "#1B7F79",
   "images": {
     "small": "/assets/images/small.png",
