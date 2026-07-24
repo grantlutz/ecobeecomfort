@@ -1,0 +1,11 @@
+{
+  "1.0.0": {
+    "en": "Added Comfort profiles to allow easier control over the thermostats"
+  },
+  "1.0.1": {
+    "en": "added readme.txt"
+  },
+  "1.0.2": {
+    "en": "First public release: control ecobee comfort profiles (Home/Away/Sleep), thermostat mode, temperature and fan, plus ecobee room sensors."
+  }
+}
