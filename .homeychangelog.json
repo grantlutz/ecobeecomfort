@@ -7,5 +7,8 @@
   },
   "1.0.2": {
     "en": "First public release: control ecobee comfort profiles (Home/Away/Sleep), thermostat mode, temperature and fan, plus ecobee room sensors."
+  },
+  "1.0.3": {
+    "en": "New app and device artwork, a clearer store description, and tidied-up Flow cards."
   }
 }

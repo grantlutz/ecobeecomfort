@@ -1,5 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <circle cx="32" cy="32" r="26" fill="none" stroke="#1B7F79" stroke-width="4"/>
-  <circle cx="32" cy="32" r="14" fill="#1B7F79"/>
-  <path d="M32 24v9l6 4" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- App icon: a home enclosing a thermostat dial — "comfort at home".
+       Deliberately distinct from the thermostat driver icon (a bare dial). -->
+  <path d="M32 6 L57 27 V56 a2 2 0 0 1-2 2 H9 a2 2 0 0 1-2-2 V27 Z"
+        fill="none" stroke="#1B7F79" stroke-width="4"
+        stroke-linejoin="round"/>
+  <circle cx="32" cy="37" r="12" fill="none" stroke="#1B7F79" stroke-width="4"/>
+  <circle cx="32" cy="37" r="4.5" fill="#1B7F79"/>
+  <path d="M32 27 v4" stroke="#1B7F79" stroke-width="3" stroke-linecap="round"/>
 </svg>

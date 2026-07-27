@@ -1,6 +1,6 @@
 {
   "id": "com.dellarciprete.ecobee",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "compatibility": ">=13.0.0",
   "sdk": 3,
   "runtime": "python",
@@ -12,7 +12,7 @@
     "en": "ecobee Comfort"
   },
   "description": {
-    "en": "Control your ecobee thermostat from Homey, including its Home, Away and Sleep comfort profiles."
+    "en": "Switch your ecobee between Home, Away, and Sleep — right from Homey."
   },
   "category": [
     "climate"
@@ -263,58 +263,6 @@
             "filter": "driver_id=thermostat"
           }
         ]
-      },
-      {
-        "id": "temperature_changed",
-        "title": {
-          "en": "Indoor temperature changed"
-        },
-        "titleFormatted": {
-          "en": "Indoor temperature changed to [[temperature]]"
-        },
-        "tokens": [
-          {
-            "name": "temperature",
-            "type": "number",
-            "title": {
-              "en": "Temperature"
-            },
-            "example": 21.5
-          }
-        ],
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=thermostat"
-          }
-        ]
-      },
-      {
-        "id": "mode_changed",
-        "title": {
-          "en": "Mode changed"
-        },
-        "titleFormatted": {
-          "en": "Mode changed to [[mode]]"
-        },
-        "tokens": [
-          {
-            "name": "mode",
-            "type": "string",
-            "title": {
-              "en": "Mode"
-            },
-            "example": "heat"
-          }
-        ],
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=thermostat"
-          }
-        ]
       }
     ],
     "conditions": [
@@ -483,55 +431,6 @@
         ]
       },
       {
-        "id": "set_mode",
-        "title": {
-          "en": "Set mode"
-        },
-        "titleFormatted": {
-          "en": "Set mode to [[mode]]"
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=thermostat"
-          },
-          {
-            "type": "dropdown",
-            "name": "mode",
-            "title": {
-              "en": "Mode"
-            },
-            "values": [
-              {
-                "id": "off",
-                "title": {
-                  "en": "Off"
-                }
-              },
-              {
-                "id": "heat",
-                "title": {
-                  "en": "Heat"
-                }
-              },
-              {
-                "id": "cool",
-                "title": {
-                  "en": "Cool"
-                }
-              },
-              {
-                "id": "auto",
-                "title": {
-                  "en": "Auto"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      {
         "id": "set_fan_mode",
         "title": {
           "en": "Set fan mode"
@@ -565,35 +464,6 @@
                 }
               }
             ]
-          }
-        ]
-      },
-      {
-        "id": "set_temperature",
-        "title": {
-          "en": "Set temperature"
-        },
-        "titleFormatted": {
-          "en": "Set temperature to [[temperature]]"
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=thermostat"
-          },
-          {
-            "type": "number",
-            "name": "temperature",
-            "title": {
-              "en": "Temperature"
-            },
-            "min": 5,
-            "max": 35,
-            "step": 0.5,
-            "units": {
-              "en": "°C"
-            }
           }
         ]
       }
