@@ -1,6 +1,6 @@
 {
   "id": "com.dellarciprete.ecobee",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "compatibility": ">=13.0.0",
   "sdk": 3,
   "runtime": "python",
@@ -45,7 +45,7 @@
       "icon": "/assets/icons/comfort.svg",
       "getable": true,
       "setable": true,
-      "insights": false,
+      "insights": true,
       "values": [
         {
           "id": "schedule",
@@ -88,7 +88,7 @@
       "icon": "/assets/icons/hold.svg",
       "getable": true,
       "setable": false,
-      "insights": false,
+      "insights": true,
       "values": [
         {
           "id": "schedule",
@@ -119,7 +119,7 @@
       "icon": "/assets/icons/fan.svg",
       "getable": true,
       "setable": true,
-      "insights": false,
+      "insights": true,
       "values": [
         {
           "id": "auto",
@@ -154,6 +154,7 @@
       ],
       "capabilitiesOptions": {
         "thermostat_mode": {
+          "insights": true,
           "values": [
             {
               "id": "off",
@@ -185,10 +186,15 @@
           "min": 5,
           "max": 35,
           "step": 0.5,
-          "decimals": 0
+          "decimals": 0,
+          "insights": true
         },
         "measure_temperature": {
-          "decimals": 0
+          "decimals": 0,
+          "insights": true
+        },
+        "measure_humidity": {
+          "insights": true
         }
       },
       "platforms": [
@@ -218,7 +224,14 @@
       ],
       "capabilitiesOptions": {
         "measure_temperature": {
-          "decimals": 0
+          "decimals": 0,
+          "insights": true
+        },
+        "measure_humidity": {
+          "insights": true
+        },
+        "alarm_motion": {
+          "insights": true
         }
       },
       "platforms": [

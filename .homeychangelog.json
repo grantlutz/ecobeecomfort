@@ -10,5 +10,8 @@
   },
   "1.0.3": {
     "en": "New app and device artwork, a clearer store description, and tidied-up Flow cards."
+  },
+  "1.0.4": {
+    "en": "Added Insights history logging: temperature, humidity, mode, comfort profile, hold status, and motion are now recorded over time and appear in the device history and Insights."
   }
 }
