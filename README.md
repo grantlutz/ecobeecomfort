@@ -20,7 +20,7 @@ developer registration — see [How sign-in works](#how-sign-in-works)).
 |---|---|
 | Comfort Profile | Picker: Schedule / Home / Away / Sleep. Picking a profile sets an indefinite hold; picking Schedule resumes the program. Shows `Custom` (read-only) when a setpoint hold or custom climate is running |
 | Hold | Sensor: following schedule / holding / vacation |
-| Mode | Off / Heat / Cool / Auto |
+| Mode | Off / Heat / Cool / Auto / Aux heat (aux heat only — heat pumps with auxiliary heat) |
 | Target temperature | Whole-degree dial. In Auto it shows and edits the *in-play* side of the heat/cool band (cooling on a summer afternoon, heating on a winter night), nudging the other side only if ecobee's minimum gap forces it |
 | Fan | Auto / On (continuous) |
 | Temperature & humidity | Indoor readings |
@@ -49,9 +49,21 @@ one card, and the thermostat picks up Away's setpoints and fan settings itself.
 ### Aux heat only
 
 For heat pumps with auxiliary (backup) heat — for example a dual-fuel system
-whose aux is a gas or propane furnace — three cards switch the thermostat to
-ecobee's *aux heat only* mode and back. The Mode picker itself still offers
-Off / Heat / Cool / Auto (aux heat only shows there as Heat).
+whose aux is a gas or propane furnace — the thermostat can run in ecobee's
+*aux heat only* mode. It shows up as **Aux heat** in the device's Mode picker
+and in Homey's built-in thermostat-mode cards (*Set the thermostat mode to …*,
+*Thermostat mode is …*, *Thermostat mode changed*), and three dedicated cards
+switch to it and back.
+
+Picking **Aux heat** (in the picker or the built-in card) behaves exactly like
+the *Set aux heat only* card below: the current mode is remembered first.
+Picking Off / Heat / Cool / Auto while in aux heat only is a manual change, so
+the remembered mode is forgotten and *Restore* has nothing to undo.
+
+> **Changed in 1.1.0:** aux heat only used to be reported as Heat. It now
+> reports as Aux heat, so *Thermostat mode is Heat* is **false** while the
+> thermostat is in aux heat only. Flows that relied on that should check for
+> Aux heat as well.
 
 | Card | What it does |
 |---|---|
@@ -66,7 +78,8 @@ with auxiliary heat, ecobee refuses the change and the card reports an error.
 Example — run on the furnace during electricity peak hours:
 
 - *When* the time is 16:00 → *And* thermostat mode is Heat **or** thermostat
-  mode is Auto → *Then* **Set aux heat only**
+  mode is Auto → *Then* **Set aux heat only** (or *Set the thermostat mode to
+  Aux heat* — same thing)
 - *When* the time is 21:00 → *Then* **Restore mode from before aux heat**
 
 The mode condition keeps the first Flow from switching a thermostat that's in

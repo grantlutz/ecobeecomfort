@@ -179,6 +179,12 @@
               "title": {
                 "en": "Auto"
               }
+            },
+            {
+              "id": "aux",
+              "title": {
+                "en": "Aux heat"
+              }
             }
           ]
         },

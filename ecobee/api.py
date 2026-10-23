@@ -391,8 +391,8 @@ def mode_of(thermostat: dict) -> str | None:
 def hvac_mode_of(thermostat: dict) -> str | None:
     """The raw ecobee hvacMode ('heat', 'auxHeatOnly', …), unmapped.
 
-    `mode_of` folds auxHeatOnly into Homey's `heat`; the aux-heat flow cards
-    need to tell the two apart.
+    The aux-heat cards decide on this rather than the Homey slug from
+    `mode_of`, so they never depend on the picker mapping.
     """
     hvac_mode = (thermostat.get("settings") or {}).get("hvacMode")
     return str(hvac_mode) if hvac_mode else None

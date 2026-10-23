@@ -105,20 +105,33 @@ MODE_API_TO_HOMEY = {
     "heat": "heat",
     "cool": "cool",
     "auto": "auto",
-    # Aux-heat-only systems report their own mode; surface it as heat.
-    "auxHeatOnly": "heat",
+    # Aux heat only (e.g. a dual-fuel system whose aux is a gas or propane
+    # furnace) gets its own picker value rather than passing for plain heat.
+    "auxHeatOnly": "aux",
 }
+# `aux` is deliberately absent: setting it goes through the aux-heat-only path
+# (`async_set_aux_heat_only`), which also remembers the mode it replaces.
 MODE_HOMEY_TO_API = {
     "off": "off",
     "heat": "heat",
     "cool": "cool",
     "auto": "auto",
 }
+HOMEY_MODE_AUX = "aux"
 
-# Aux-heat-only (e.g. a dual-fuel system whose aux is a gas or propane furnace)
-# is driven by its own flow cards rather than the thermostat_mode picker, so the
-# mapping above is untouched. The mode the thermostat was in beforehand is kept
-# in the device store under this key so a later card can put it back.
+# The thermostat_mode picker values — kept identical to the driver's
+# capabilitiesOptions in app.json, and pushed onto devices paired before `aux`
+# existed (see the thermostat device's on_init).
+THERMOSTAT_MODE_VALUES = (
+    {"id": "off", "title": {"en": "Off"}},
+    {"id": "heat", "title": {"en": "Heat"}},
+    {"id": "cool", "title": {"en": "Cool"}},
+    {"id": "auto", "title": {"en": "Auto"}},
+    {"id": HOMEY_MODE_AUX, "title": {"en": "Aux heat"}},
+)
+
+# The mode the thermostat was in before aux heat only is kept in the device
+# store under this key so the restore card can put it back.
 HVAC_MODE_AUX_HEAT_ONLY = "auxHeatOnly"
 PREV_HVAC_MODE_STORE_KEY = "prev_hvac_mode"
 # Restored when aux heat was switched on outside Homey and nothing was saved.

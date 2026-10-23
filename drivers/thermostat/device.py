@@ -57,11 +57,13 @@ from ecobee.const import (  # noqa: E402
     COMFORT_SCHEDULE,
     DEFAULT_HOLD_TYPE,
     DEFAULT_POLL_INTERVAL,
+    HOMEY_MODE_AUX,
     HVAC_MODE_AUX_HEAT_ONLY,
     MODE_API_TO_HOMEY,
     MODE_HOMEY_TO_API,
     PREV_HVAC_MODE_STORE_KEY,
     STANDARD_CLIMATES,
+    THERMOSTAT_MODE_VALUES,
 )
 
 CAPABILITIES = (
@@ -99,6 +101,7 @@ class EcobeeThermostatDevice(Device):
                     await self.add_capability(cap)
                 except Exception as e:  # noqa: BLE001
                     self.error(f"add_capability {cap} failed:", e)
+        await self._migrate_mode_values()
 
         self.register_capability_listener("target_temperature", self._on_set_target)
         self.register_capability_listener("thermostat_mode", self._on_set_mode)
@@ -126,6 +129,27 @@ class EcobeeThermostatDevice(Device):
 
     async def on_deleted(self) -> None:
         await self.on_uninit()
+
+    async def _migrate_mode_values(self) -> None:
+        """Give devices paired before `aux` existed the current mode values.
+
+        Only writes when the picker is missing a value, since setting
+        capability options is expensive.
+        """
+        try:
+            options = dict(self.get_capability_options("thermostat_mode"))
+        except Exception as e:  # noqa: BLE001
+            self.error("read thermostat_mode options failed:", e)
+            return
+        have = {v.get("id") for v in options.get("values") or [] if isinstance(v, dict)}
+        if all(v["id"] in have for v in THERMOSTAT_MODE_VALUES):
+            return
+        options["values"] = [dict(v) for v in THERMOSTAT_MODE_VALUES]
+        try:
+            await self.set_capability_options("thermostat_mode", options)
+            self.log("thermostat_mode values updated (added aux heat)")
+        except Exception as e:  # noqa: BLE001
+            self.error("set thermostat_mode options failed:", e)
 
     # ── Token persistence ───────────────────────────────────────────────────
     async def _persist_tokens(self) -> None:
@@ -245,7 +269,7 @@ class EcobeeThermostatDevice(Device):
         heat, cool = setpoints_of(data)
         if homey_mode == "cool":
             return cool
-        if homey_mode == "heat":
+        if homey_mode in ("heat", HOMEY_MODE_AUX):
             return heat
         return cool if active_side_of(data) == "cool" else heat
 
@@ -272,7 +296,7 @@ class EcobeeThermostatDevice(Device):
 
         if homey_mode == "cool":
             side = "cool"
-        elif homey_mode == "heat":
+        elif homey_mode in ("heat", HOMEY_MODE_AUX):
             side = "heat"
         else:
             side = active_side_of(data)
@@ -298,17 +322,22 @@ class EcobeeThermostatDevice(Device):
         await self._safe_set("ecobee_hold_status", "hold")
 
     async def async_set_mode(self, homey_mode: str) -> None:
+        if homey_mode == HOMEY_MODE_AUX:
+            await self.async_set_aux_heat_only()
+            return
         api_mode = MODE_HOMEY_TO_API.get(homey_mode)
         if not api_mode:
             raise Exception(f"Unknown thermostat mode: {homey_mode}")
-        await self._client.update_settings(self.identifier, {"hvacMode": api_mode})
-        await self._persist_tokens()
-        await self._safe_set("thermostat_mode", homey_mode)  # optimistic
+        await self._write_hvac_mode(api_mode)
+        # A mode picked by hand replaces aux heat only for good, so there is
+        # nothing left for the restore card to put back.
+        if PREV_HVAC_MODE_STORE_KEY in self.get_store():
+            await self.unset_store_value(PREV_HVAC_MODE_STORE_KEY)
 
     # ── Aux heat only ────────────────────────────────────────────────────────
-    # The thermostat_mode picker stays Off/Heat/Cool/Auto; aux-heat-only gets
-    # its own cards so a Flow can switch to it (say, during electricity peak
-    # hours) and later put back exactly the mode that was there before.
+    # Reached from the "Set aux heat only" card and from picking Aux heat in
+    # the thermostat_mode picker, so a Flow can switch to it (say, during
+    # electricity peak hours) and later put back exactly the mode it replaced.
 
     async def _fresh_hvac_mode(self) -> str:
         """The raw hvacMode straight from ecobee, bypassing the poll cache."""
