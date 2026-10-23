@@ -335,9 +335,10 @@ class EcobeeThermostatDevice(Device):
             await self.unset_store_value(PREV_HVAC_MODE_STORE_KEY)
 
     # ── Aux heat only ────────────────────────────────────────────────────────
-    # Reached from the "Set aux heat only" card and from picking Aux heat in
-    # the thermostat_mode picker, so a Flow can switch to it (say, during
-    # electricity peak hours) and later put back exactly the mode it replaced.
+    # Reached by picking Aux heat in the thermostat_mode picker (or Homey's
+    # built-in "Set the thermostat mode to" card), so a Flow can switch to it
+    # (say, during electricity peak hours) and the "Restore mode from before
+    # aux heat" card can later put back exactly the mode it replaced.
 
     async def _fresh_hvac_mode(self) -> str:
         """The raw hvacMode straight from ecobee, bypassing the poll cache."""
@@ -397,10 +398,6 @@ class EcobeeThermostatDevice(Device):
             saved = AUX_RESTORE_FALLBACK_MODE
         await self._write_hvac_mode(str(saved))
         await self.unset_store_value(PREV_HVAC_MODE_STORE_KEY)
-
-    async def async_is_aux_heat_only(self) -> bool:
-        """True when the thermostat's raw hvacMode is aux heat only."""
-        return await self._fresh_hvac_mode() == HVAC_MODE_AUX_HEAT_ONLY
 
     async def async_set_comfort(
         self, profile: str, *, hold_type: str = DEFAULT_HOLD_TYPE, hold_hours: int | None = None

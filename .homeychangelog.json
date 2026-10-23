@@ -15,6 +15,6 @@
     "en": "Added Insights history logging: temperature, humidity, mode, comfort profile, hold status, and motion are now recorded over time and appear in the device history and Insights."
   },
   "1.1.0": {
-    "en": "Added aux heat only: a new Aux heat choice in the thermostat mode picker and mode cards, plus Flow cards to switch to aux heat only, restore the previous mode afterwards, and check for aux heat only mode. Aux heat only now shows as Aux heat instead of Heat."
+    "en": "Added aux heat only: a new Aux heat choice in the thermostat mode picker and mode cards, and a Flow card to restore the mode from before aux heat. Aux heat only now shows as Aux heat instead of Heat."
   }
 }

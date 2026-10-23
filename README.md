@@ -37,9 +37,8 @@ with no sign-in. Readings update at the thermostat's poll cadence (~5 minutes)
 
 - *Actions:* Set comfort profile (with "hold until" choice) · Set comfort
   profile by name (for custom profiles) · Resume the schedule · Set mode ·
-  Set fan mode · Set temperature · Set aux heat only · Restore mode from
-  before aux heat
-- *Conditions:* Comfort profile is / is not … · Mode is / is not aux heat only
+  Set fan mode · Set temperature · Restore mode from before aux heat
+- *Condition:* Comfort profile is / is not …
 - *Triggers:* Comfort profile changed · Indoor temperature changed · Mode
   changed — plus Homey's built-in motion/temperature cards on the room sensors
 
@@ -52,34 +51,30 @@ For heat pumps with auxiliary (backup) heat — for example a dual-fuel system
 whose aux is a gas or propane furnace — the thermostat can run in ecobee's
 *aux heat only* mode. It shows up as **Aux heat** in the device's Mode picker
 and in Homey's built-in thermostat-mode cards (*Set the thermostat mode to …*,
-*Thermostat mode is …*, *Thermostat mode changed*), and three dedicated cards
-switch to it and back.
+*Thermostat mode is …*, *Thermostat mode changed*).
 
-Picking **Aux heat** (in the picker or the built-in card) behaves exactly like
-the *Set aux heat only* card below: the current mode is remembered first.
-Picking Off / Heat / Cool / Auto while in aux heat only is a manual change, so
-the remembered mode is forgotten and *Restore* has nothing to undo.
+- Picking **Aux heat** (in the picker or with *Set the thermostat mode to Aux
+  heat*) first remembers the mode the thermostat was in. Already in aux heat
+  only: nothing changes and the remembered mode is kept.
+- **Restore mode from before aux heat** (action card) puts the remembered mode
+  back — Heat if nothing was remembered — and forgets it. It only acts while
+  the thermostat is still in aux heat only.
+- Picking Off / Heat / Cool / Auto while in aux heat only is a manual change:
+  the remembered mode is forgotten and *Restore* has nothing to undo.
+
+Both read the mode fresh from ecobee rather than from the last poll, and the
+remembered mode survives a Homey restart. If the thermostat isn't set up with
+auxiliary heat, ecobee refuses the change and Homey shows an error.
 
 > **Changed in 1.1.0:** aux heat only used to be reported as Heat. It now
 > reports as Aux heat, so *Thermostat mode is Heat* is **false** while the
 > thermostat is in aux heat only. Flows that relied on that should check for
 > Aux heat as well.
 
-| Card | What it does |
-|---|---|
-| **Set aux heat only** | Remembers the current mode, then switches to aux heat only. Already in aux heat only: does nothing and keeps the mode it remembered |
-| **Restore mode from before aux heat** | Puts back the remembered mode (Heat if nothing was remembered) and forgets it. If the mode was changed by hand in the meantime, it leaves the thermostat alone |
-| **Mode is / is not aux heat only** | Condition on the thermostat's actual mode |
-
-The cards read the mode fresh from ecobee rather than from the last poll, and
-the remembered mode survives a Homey restart. If the thermostat isn't set up
-with auxiliary heat, ecobee refuses the change and the card reports an error.
-
 Example — run on the furnace during electricity peak hours:
 
 - *When* the time is 16:00 → *And* thermostat mode is Heat **or** thermostat
-  mode is Auto → *Then* **Set aux heat only** (or *Set the thermostat mode to
-  Aux heat* — same thing)
+  mode is Auto → *Then* **Set the thermostat mode to Aux heat**
 - *When* the time is 21:00 → *Then* **Restore mode from before aux heat**
 
 The mode condition keeps the first Flow from switching a thermostat that's in

@@ -310,22 +310,6 @@
             }
           }
         ]
-      },
-      {
-        "id": "aux_heat_only_is",
-        "title": {
-          "en": "Mode !{{is|is not}} aux heat only"
-        },
-        "hint": {
-          "en": "True when the thermostat's mode is aux heat only (heating with its auxiliary/backup heat alone). Reads the mode fresh from ecobee."
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=thermostat"
-          }
-        ]
       }
     ],
     "actions": [
@@ -503,28 +487,12 @@
         ]
       },
       {
-        "id": "set_aux_heat_only",
-        "title": {
-          "en": "Set aux heat only"
-        },
-        "hint": {
-          "en": "Heats with the auxiliary (backup) heat alone, e.g. a gas or propane furnace, and remembers the current mode so 'Restore mode from before aux heat' can put it back. Does nothing if the thermostat is already in aux heat only."
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=thermostat"
-          }
-        ]
-      },
-      {
         "id": "restore_from_aux_heat",
         "title": {
           "en": "Restore mode from before aux heat"
         },
         "hint": {
-          "en": "Puts back the mode saved by 'Set aux heat only' (Heat if nothing was saved). Leaves the thermostat alone if its mode was changed in the meantime."
+          "en": "Puts back the mode the thermostat was in before it was set to Aux heat (Heat if nothing was saved). Leaves the thermostat alone if its mode was changed in the meantime."
         },
         "args": [
           {
