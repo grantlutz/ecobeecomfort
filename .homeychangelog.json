@@ -13,5 +13,8 @@
   },
   "1.0.4": {
     "en": "Added Insights history logging: temperature, humidity, mode, comfort profile, hold status, and motion are now recorded over time and appear in the device history and Insights."
+  },
+  "1.1.0": {
+    "en": "Added aux heat only Flow cards: switch to aux heat only, restore the previous mode afterwards, and a condition to check for aux heat only mode."
   }
 }

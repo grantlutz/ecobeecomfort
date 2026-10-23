@@ -29,6 +29,7 @@ from ecobee.api import (  # noqa: E402
     EcobeeAPIError,
     EcobeeClient,
     EcobeeRateLimitError,
+    EcobeeRequestRejected,
     active_side_of,
     c_to_f10,
     comfort_profile_of,
@@ -51,11 +52,15 @@ from ecobee.auth import (  # noqa: E402
     new_session,
 )
 from ecobee.const import (  # noqa: E402
+    AUX_RESTORE_FALLBACK_MODE,
     COMFORT_CUSTOM,
     COMFORT_SCHEDULE,
     DEFAULT_HOLD_TYPE,
     DEFAULT_POLL_INTERVAL,
+    HVAC_MODE_AUX_HEAT_ONLY,
+    MODE_API_TO_HOMEY,
     MODE_HOMEY_TO_API,
+    PREV_HVAC_MODE_STORE_KEY,
     STANDARD_CLIMATES,
 )
 
@@ -299,6 +304,74 @@ class EcobeeThermostatDevice(Device):
         await self._client.update_settings(self.identifier, {"hvacMode": api_mode})
         await self._persist_tokens()
         await self._safe_set("thermostat_mode", homey_mode)  # optimistic
+
+    # ── Aux heat only ────────────────────────────────────────────────────────
+    # The thermostat_mode picker stays Off/Heat/Cool/Auto; aux-heat-only gets
+    # its own cards so a Flow can switch to it (say, during electricity peak
+    # hours) and later put back exactly the mode that was there before.
+
+    async def _fresh_hvac_mode(self) -> str:
+        """The raw hvacMode straight from ecobee, bypassing the poll cache."""
+        hvac_mode = await self._client.get_hvac_mode(self.identifier)
+        await self._persist_tokens()
+        if not hvac_mode:
+            raise Exception("Could not read the thermostat's current mode from ecobee.")
+        return hvac_mode
+
+    async def _write_hvac_mode(self, hvac_mode: str) -> None:
+        """Set a raw hvacMode and reflect it locally until the next poll."""
+        await self._client.update_settings(self.identifier, {"hvacMode": hvac_mode})
+        await self._persist_tokens()
+        if self._thermostat:
+            self._thermostat.setdefault("settings", {})["hvacMode"] = hvac_mode
+        homey_mode = MODE_API_TO_HOMEY.get(hvac_mode)
+        if homey_mode:
+            await self._safe_set("thermostat_mode", homey_mode)  # optimistic
+
+    async def async_set_aux_heat_only(self) -> None:
+        """Switch to aux heat only, remembering the mode it replaces.
+
+        Already in aux heat only: nothing to do, and the mode saved when it was
+        switched on is kept so the restore card still has it.
+        """
+        current = await self._fresh_hvac_mode()
+        if current == HVAC_MODE_AUX_HEAT_ONLY:
+            return
+        await self.set_store_value(PREV_HVAC_MODE_STORE_KEY, current)
+        try:
+            await self._write_hvac_mode(HVAC_MODE_AUX_HEAT_ONLY)
+        except EcobeeRequestRejected as e:
+            # ecobee answered and changed nothing, so there is nothing to restore.
+            await self.unset_store_value(PREV_HVAC_MODE_STORE_KEY)
+            self.error("aux heat only rejected:", e)
+            raise Exception(
+                "ecobee did not accept aux heat only mode. Check that this "
+                "thermostat is set up with auxiliary (backup) heat in its "
+                f"installation settings. ecobee said: {e}"
+            ) from e
+
+    async def async_restore_from_aux_heat(self) -> None:
+        """Put back the mode saved by `async_set_aux_heat_only`.
+
+        Only acts while the thermostat is still in aux heat only: if someone
+        changed the mode in the meantime their choice wins and the saved mode
+        is discarded. With nothing saved (aux heat was switched on outside
+        Homey) it falls back to heat.
+        """
+        saved = self.get_store().get(PREV_HVAC_MODE_STORE_KEY)
+        current = await self._fresh_hvac_mode()
+        if current != HVAC_MODE_AUX_HEAT_ONLY:
+            if saved is not None:
+                await self.unset_store_value(PREV_HVAC_MODE_STORE_KEY)
+            return
+        if not saved or saved == HVAC_MODE_AUX_HEAT_ONLY:
+            saved = AUX_RESTORE_FALLBACK_MODE
+        await self._write_hvac_mode(str(saved))
+        await self.unset_store_value(PREV_HVAC_MODE_STORE_KEY)
+
+    async def async_is_aux_heat_only(self) -> bool:
+        """True when the thermostat's raw hvacMode is aux heat only."""
+        return await self._fresh_hvac_mode() == HVAC_MODE_AUX_HEAT_ONLY
 
     async def async_set_comfort(
         self, profile: str, *, hold_type: str = DEFAULT_HOLD_TYPE, hold_hours: int | None = None

@@ -115,6 +115,15 @@ MODE_HOMEY_TO_API = {
     "auto": "auto",
 }
 
+# Aux-heat-only (e.g. a dual-fuel system whose aux is a gas or propane furnace)
+# is driven by its own flow cards rather than the thermostat_mode picker, so the
+# mapping above is untouched. The mode the thermostat was in beforehand is kept
+# in the device store under this key so a later card can put it back.
+HVAC_MODE_AUX_HEAT_ONLY = "auxHeatOnly"
+PREV_HVAC_MODE_STORE_KEY = "prev_hvac_mode"
+# Restored when aux heat was switched on outside Homey and nothing was saved.
+AUX_RESTORE_FALLBACK_MODE = "heat"
+
 # ecobee's fan control is binary: run continuously, or follow the system.
 FAN_MODES = ("auto", "on")
 

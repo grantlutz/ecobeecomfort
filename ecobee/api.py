@@ -67,6 +67,14 @@ class EcobeeRateLimitError(EcobeeAPIError):
     """HTTP 429 — back off and retry on the next poll."""
 
 
+class EcobeeRequestRejected(EcobeeAPIError):
+    """ecobee answered, but refused the request (validation error, bad value…).
+
+    Distinct from a network failure: the call reached ecobee and nothing was
+    changed, so callers can say so with confidence.
+    """
+
+
 # ─────────────────────────────────────────────
 # Temperature conversion
 # ─────────────────────────────────────────────
@@ -110,7 +118,7 @@ class EcobeeClient:
         message = status.get("message", "(no message)")
         if code in AUTH_ERROR_CODES:
             raise EcobeeAuthError(f"ecobee rejected the token (code {code}): {message}")
-        raise EcobeeAPIError(f"ecobee error code {code}: {message}")
+        raise EcobeeRequestRejected(f"ecobee error code {code}: {message}")
 
     async def _read(self, r: aiohttp.ClientResponse, what: str) -> dict:
         if r.status == 401:
@@ -119,7 +127,15 @@ class EcobeeClient:
             raise EcobeeRateLimitError(f"{what} -> 429 rate limited")
         text = await r.text()
         if r.status != 200:
-            raise EcobeeAPIError(f"{what} -> {r.status}: {text[:200]}")
+            # ecobee reports validation failures as a non-200 with a status
+            # envelope; surface its message when there is one.
+            try:
+                status = json.loads(text).get("status") or {}
+            except (json.JSONDecodeError, AttributeError):
+                status = {}
+            raise EcobeeRequestRejected(
+                f"{what} -> {r.status}: {status.get('message') or text[:200]}"
+            )
         try:
             payload = json.loads(text)
         except json.JSONDecodeError as e:
@@ -176,6 +192,37 @@ class EcobeeClient:
     @staticmethod
     def _selection(identifier: str) -> dict:
         return {"selectionType": "thermostats", "selectionMatch": str(identifier)}
+
+    async def get_hvac_mode(self, identifier: str) -> str | None:
+        """The thermostat's raw `settings.hvacMode`, fetched fresh.
+
+        Unlike the poll this skips the device cache, so a flow card deciding
+        what to save or restore never acts on a reading up to a poll old. The
+        selection is just one thermostat's settings.
+        """
+        token = await self._bearer()
+        selection = {
+            "selection": {
+                **self._selection(identifier),
+                "includeSettings": True,
+            }
+        }
+        url = f"{API_THERMOSTAT}?json=" + urllib.parse.quote(
+            json.dumps(selection, separators=(",", ":"))
+        )
+        try:
+            async with self._session.get(
+                url,
+                headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
+                timeout=REQUEST_TIMEOUT,
+            ) as r:
+                payload = await self._read(r, "GET /thermostat (settings)")
+        except aiohttp.ClientError as e:
+            raise EcobeeAPIError(f"GET /thermostat network error: {e}") from e
+        for t in payload.get("thermostatList") or []:
+            if isinstance(t, dict) and str(t.get("identifier")) == str(identifier):
+                return hvac_mode_of(t)
+        return None
 
     async def update_settings(self, identifier: str, settings: dict) -> None:
         """Patch the thermostat's `settings` object (hvacMode, fan runtime, …)."""
@@ -339,6 +386,16 @@ def mode_of(thermostat: dict) -> str | None:
     """The Homey thermostat_mode slug for the thermostat's hvacMode."""
     hvac_mode = (thermostat.get("settings") or {}).get("hvacMode")
     return MODE_API_TO_HOMEY.get(str(hvac_mode)) if hvac_mode else None
+
+
+def hvac_mode_of(thermostat: dict) -> str | None:
+    """The raw ecobee hvacMode ('heat', 'auxHeatOnly', …), unmapped.
+
+    `mode_of` folds auxHeatOnly into Homey's `heat`; the aux-heat flow cards
+    need to tell the two apart.
+    """
+    hvac_mode = (thermostat.get("settings") or {}).get("hvacMode")
+    return str(hvac_mode) if hvac_mode else None
 
 
 def fan_mode_of(thermostat: dict) -> str:

@@ -37,13 +37,41 @@ with no sign-in. Readings update at the thermostat's poll cadence (~5 minutes)
 
 - *Actions:* Set comfort profile (with "hold until" choice) · Set comfort
   profile by name (for custom profiles) · Resume the schedule · Set mode ·
-  Set fan mode · Set temperature
-- *Condition:* Comfort profile is / is not …
+  Set fan mode · Set temperature · Set aux heat only · Restore mode from
+  before aux heat
+- *Conditions:* Comfort profile is / is not … · Mode is / is not aux heat only
 - *Triggers:* Comfort profile changed · Indoor temperature changed · Mode
   changed — plus Homey's built-in motion/temperature cards on the room sensors
 
 Example flow: *"When everyone has left home → Set comfort profile to Away"* —
 one card, and the thermostat picks up Away's setpoints and fan settings itself.
+
+### Aux heat only
+
+For heat pumps with auxiliary (backup) heat — for example a dual-fuel system
+whose aux is a gas or propane furnace — three cards switch the thermostat to
+ecobee's *aux heat only* mode and back. The Mode picker itself still offers
+Off / Heat / Cool / Auto (aux heat only shows there as Heat).
+
+| Card | What it does |
+|---|---|
+| **Set aux heat only** | Remembers the current mode, then switches to aux heat only. Already in aux heat only: does nothing and keeps the mode it remembered |
+| **Restore mode from before aux heat** | Puts back the remembered mode (Heat if nothing was remembered) and forgets it. If the mode was changed by hand in the meantime, it leaves the thermostat alone |
+| **Mode is / is not aux heat only** | Condition on the thermostat's actual mode |
+
+The cards read the mode fresh from ecobee rather than from the last poll, and
+the remembered mode survives a Homey restart. If the thermostat isn't set up
+with auxiliary heat, ecobee refuses the change and the card reports an error.
+
+Example — run on the furnace during electricity peak hours:
+
+- *When* the time is 16:00 → *And* thermostat mode is Heat **or** thermostat
+  mode is Auto → *Then* **Set aux heat only**
+- *When* the time is 21:00 → *Then* **Restore mode from before aux heat**
+
+The mode condition keeps the first Flow from switching a thermostat that's in
+Cool or Off. The second Flow needs no condition: restore only acts while the
+thermostat is still in aux heat only.
 
 ## How sign-in works
 
