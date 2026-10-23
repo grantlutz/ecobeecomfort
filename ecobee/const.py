@@ -105,23 +105,21 @@ MODE_API_TO_HOMEY = {
     "heat": "heat",
     "cool": "cool",
     "auto": "auto",
-    # Aux heat only (e.g. a dual-fuel system whose aux is a gas or propane
-    # furnace) gets its own picker value rather than passing for plain heat.
+    # Aux heat only (e.g. a heat pump whose aux is a gas or propane furnace).
     "auxHeatOnly": "aux",
 }
-# `aux` is deliberately absent: setting it goes through the aux-heat-only path
-# (`async_set_aux_heat_only`), which also remembers the mode it replaces.
 MODE_HOMEY_TO_API = {
     "off": "off",
     "heat": "heat",
     "cool": "cool",
     "auto": "auto",
+    "aux": "auxHeatOnly",
 }
 HOMEY_MODE_AUX = "aux"
 
-# The thermostat_mode picker values — kept identical to the driver's
-# capabilitiesOptions in app.json, and pushed onto devices paired before `aux`
-# existed (see the thermostat device's on_init).
+# The thermostat_mode picker values. Keep identical to the thermostat driver's
+# capabilitiesOptions in app.json; devices paired before `aux` existed get them
+# pushed on init.
 THERMOSTAT_MODE_VALUES = (
     {"id": "off", "title": {"en": "Off"}},
     {"id": "heat", "title": {"en": "Heat"}},
@@ -129,13 +127,6 @@ THERMOSTAT_MODE_VALUES = (
     {"id": "auto", "title": {"en": "Auto"}},
     {"id": HOMEY_MODE_AUX, "title": {"en": "Aux heat"}},
 )
-
-# The mode the thermostat was in before aux heat only is kept in the device
-# store under this key so the restore card can put it back.
-HVAC_MODE_AUX_HEAT_ONLY = "auxHeatOnly"
-PREV_HVAC_MODE_STORE_KEY = "prev_hvac_mode"
-# Restored when aux heat was switched on outside Homey and nothing was saved.
-AUX_RESTORE_FALLBACK_MODE = "heat"
 
 # ecobee's fan control is binary: run continuously, or follow the system.
 FAN_MODES = ("auto", "on")

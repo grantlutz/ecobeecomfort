@@ -69,9 +69,6 @@ class EcobeeThermostatDriver(Driver):
         async def set_fan_run(args, **kwargs):
             await args["device"].async_set_fan(args["mode"])
 
-        async def restore_aux_heat_run(args, **kwargs):
-            await args["device"].async_restore_from_aux_heat()
-
         async def comfort_is_run(args, **kwargs) -> bool:
             current = await args["device"].async_current_comfort()
             return current.strip().lower() == str(args["profile"]).strip().lower()
@@ -83,9 +80,6 @@ class EcobeeThermostatDriver(Driver):
         flow.get_action_card("resume_schedule").register_run_listener(resume_run)
         flow.get_action_card("set_fan_mode").register_run_listener(set_fan_run)
         flow.get_condition_card("comfort_profile_is").register_run_listener(comfort_is_run)
-        flow.get_action_card("restore_from_aux_heat").register_run_listener(
-            restore_aux_heat_run
-        )
 
     # ── Pairing ────────────────────────────────────────────────────────────
     async def on_pair(self, session) -> None:

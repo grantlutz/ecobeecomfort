@@ -485,22 +485,6 @@
             ]
           }
         ]
-      },
-      {
-        "id": "restore_from_aux_heat",
-        "title": {
-          "en": "Restore mode from before aux heat"
-        },
-        "hint": {
-          "en": "Puts back the mode the thermostat was in before it was set to Aux heat (Heat if nothing was saved). Leaves the thermostat alone if its mode was changed in the meantime."
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=thermostat"
-          }
-        ]
       }
     ]
   },
